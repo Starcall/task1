@@ -40,7 +40,7 @@ void worker::run() {
                 emit finish();
                 return;
             }
-            auto lambda = [file, it]() -> QString {
+            auto lambda = [&]() -> QString {
                     QFile cur_file(file);
                     if (cur_file.open(QIODevice::ReadOnly)) {
                         QString s = cur_file.read(qMin(it.key(), qint64(7)));
@@ -74,7 +74,7 @@ void worker::run() {
                 }*/
                 emit send_data(it2.value());
             }
-            std::cerr << qq++ << std::endl;
+           // std::cerr << qq++ << std::endl;
         }
 
     }

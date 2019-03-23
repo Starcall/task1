@@ -36,10 +36,9 @@ main_window::main_window(QWidget *parent)
 
 main_window::~main_window()
 {
-        thread->exit(0);
-        if(!thread->wait(1000)) {
-                thread->terminate();
-            }
+    user_interrupt();
+    thread->quit();
+    thread->wait();
     delete thread;
 }
 
@@ -52,7 +51,7 @@ void main_window::select_directory()
                                                     QString(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if (dir.isEmpty()) return;
     directory = dir;
-   // std::cerr << directory.toStdString() << std::endl;
+    std::cerr << directory.toStdString() << std::endl;
     ui->treeWidget->clear();
     ui->stopButton->setHidden(false);
     setWindowTitle(QString("Duplicates in directory - %1").arg(directory));
