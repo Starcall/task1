@@ -44,7 +44,13 @@ main_window::~main_window()
 
 void main_window::select_directory()
 {
-    delete thread;
+
+    if (thread->isRunning()) {
+        user_interrupt();
+        thread->quit();
+        thread->wait();
+        delete thread;
+    }
     thread = new QThread();
     ui->progressBar->setHidden(false);
     QString dir = QFileDialog::getExistingDirectory(this, "Select Directory for Scanning",

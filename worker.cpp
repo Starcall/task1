@@ -18,7 +18,19 @@ void worker::run() {
         }
         QString file_path = it.next();
         QFileInfo path_info(file_path);
-        size_groups[path_info.size()].push_back(file_path);
+        QFile file(file_path);
+        if (file.open(QIODevice::ReadOnly)) {
+            if (path_info.size() > 3) {
+                auto cur = file.read(2);
+                if (!validUTF8(static_cast<quint8>(cur[0]), static_cast<quint8>(cur[1]))) {
+                    file.close();
+                    continue;
+                }
+            }
+            file.close();
+            size_groups[path_info.size()].push_back(file_path);
+        }
+
     }
     qint16 cur = 0;
     int qq = 0;
@@ -47,7 +59,7 @@ void worker::run() {
                         cur_file.close();
                         return s;
                     }
-                    throw QString("Can`t open a file");
+                    //throw QString("Can`t open a file");
                 };
             optimize[lambda()].push_back(file);
         }
@@ -81,15 +93,33 @@ void worker::run() {
     emit finish();
 }
 
+bool worker::validUTF8(quint8 a, quint8 b) {
+    // 1-byte, must be followed by 1-byte or first of multi-byte
+    if (a < 0x80) {
+        return b < 0x80 || (0xc0 <= b && b < 0xf8);
+    }
+    // continuation byte, can be followed by nearly anything
+    if (a < 0xC0) {
+        return b < 0xf8;
+    }
+    // first of multi-byte, must be followed by continuation byte
+    if (a < 0xF8) {
+        return 0x80 <= b && b < 0xc0;
+    }
+    return false;
+}
+
 QByteArray worker::get_hash(QString const& filepath) {
     QCryptographicHash sha(QCryptographicHash::Sha256);
     QFile file(filepath);
 
     if (file.open(QIODevice::ReadOnly)) {
+
+
         sha.addData(file.readAll());
         file.close();
         return sha.result();
     }
-    throw QString("Can`t open a file");
+   // throw QString("Can`t open a file");
 }
 

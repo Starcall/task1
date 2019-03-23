@@ -40,4 +40,5 @@ private:
     QString directory;
     QByteArray get_hash(QString const& file_path);
     bool check_if_interrupted();
+    bool validUTF8(quint8 a, quint8 b);
 };
