@@ -1,0 +1,51 @@
+#include "scanner.h"
+#include <QCommonStyle>
+#include <QDesktopWidget>
+#include <QDir>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QMessageBox>
+#include <iostream>
+#include <QMap>
+
+#include <QCryptographicHash>
+
+scanner::scanner()
+{
+
+}
+
+void scanner::scan_diretory(QString dir) {
+    QDir d(dir);
+    QFileInfoList list = d.entryInfoList();
+    QMap<int, QVector<QFileInfo>> same_size;
+
+    for (QFileInfo file_info : list)
+    {
+        if (file_info.isDir()) continue;
+        same_size[(int)file_info.size()].push_back(file_info);
+        /*
+        QTreeWidgetItem* item = new QTreeWidgetItem(ui->treeWidget);
+        item->setText(0, file_info.fileName());
+        item->setText(1, QString::number(file_info.size()));
+        ui->treeWidget->addTopLevelItem(item);
+        */
+    }
+    QCryptographicHash encryptor(QCryptographicHash::Sha3_256);
+    for (auto group : same_size)
+    {
+       if (group.size() == 1) continue;
+
+       QMap<QByteArray, QVector<QFileInfo> > was;
+       for (int i = 0; i < group.size(); i++)
+       {
+           QFileInfo cur_file = group[i];
+           QFile f(cur_file.fileName());
+           if (f.open(QIODevice::ReadOnly)) {
+              encryptor.addData(&f);
+           }
+           QByteArray hash = encryptor.result();
+           was[hash].push_back(cur_file);
+       }
+    }
+}
